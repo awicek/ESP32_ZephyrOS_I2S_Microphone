@@ -1,0 +1,44 @@
+&wifi {
+    status = "okay";
+};
+
+/ {
+	buttons {
+        record_button: record_button {
+            gpios = <&gpio0 9 0>;
+        };
+    };
+	wifi_ap: wifi_ap {
+		compatible = "espressif,esp32-wifi";
+		status = "okay";
+	};
+};
+
+&pinctrl {
+	i2s1_pinconf: i2s1_pinconf {
+		group1 {
+			pinmux = <I2S0_MCLK_GPIO42>,
+					 <I2S1_I_WS_GPIO6>,
+					 <I2S1_I_BCK_GPIO4>;
+			output-enable;
+		};
+		group2 {
+			pinmux = <I2S1_I_SD_GPIO5>;
+			input-enable;
+		};
+	};
+};
+
+i2s_rx: &i2s1 {
+	status = "okay";
+
+	pinctrl-0 = <&i2s1_pinconf>;
+	pinctrl-names = "default";
+
+	dmas = <&dma 4>;
+	dma-names = "rx";
+};
+
+&dma {
+	status = "okay";
+};

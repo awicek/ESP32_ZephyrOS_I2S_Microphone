@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Zephyr on ESP32-S3",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "interface": "cmsis-dap",
+            "device": "ESP32-S3",
+            "configFiles": [
+                "path/to/esp32s3_devkitc.cfg"
+            ],
+            "executable": "${workspaceFolder}/build/zephyr/zephyr.elf",
+            "runToMain": true
+        }
+    ]
+}

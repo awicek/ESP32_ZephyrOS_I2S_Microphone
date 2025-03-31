@@ -1,0 +1,28 @@
+{
+    // Hush CMake
+    "cmake.configureOnOpen": false,
+
+    // IntelliSense
+    "C_Cpp.default.compilerPath": "/home/richard/zephyr-sdk-0.17.0/xtensa-espressif_esp32_zephyr-elf/bin/xtensa-espressif_esp32_zephyr-elf-gcc",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+
+    // File Associations
+    "files.associations": {
+        "uart.h": "c",
+        "device.h": "c",
+        "kernel.h": "c",
+        "string.h": "c",
+        "gpio.h": "c",
+        "log.h": "c",
+        "devicetree.h": "c",
+        "compare": "c",
+        "cstdint": "c",
+        "i2s.h": "c",
+        "functional": "c",
+        "stdio.h": "c",
+        "common.h": "c",
+        "wifi_mgmt.h": "c",
+        "dhcpv4_server.h": "c",
+        "net_mgmt.h": "c"
+    }
+}
