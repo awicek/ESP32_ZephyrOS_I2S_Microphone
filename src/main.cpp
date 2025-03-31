@@ -7,6 +7,7 @@
 #include "access_point.h"
 #include "sound_recording.h"
 static I2SWrapper sound_wrapper;
+static uint8_t buff[64 * 512];
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
@@ -14,7 +15,7 @@ LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
 #define STACK_SIZE 4096  // Stack size for the thread
 #define PRIORITY 5       // Thread priority
 
-#define SERVER_IP "192.168.4.12"  // Change to your PC's IP
+#define SERVER_IP "192.168.4.11"  // Change to your PC's IP
 #define SERVER_PORT 1001
 
 void identify_caller(void) {
@@ -84,7 +85,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         }
         else 
         {
-            LOG_ERR("recv err rc:", rc);
+            LOG_ERR("recv err rc: %d", rc);
         }
     }   
 
@@ -106,6 +107,13 @@ void print_thread_info(const struct k_thread *thread, void *user_data) {
 
 int main(void)
 {
+    uint64_t sum;
+    memset(buff, 2, sizeof(buff));
+    for (int i = 0; i < 100000; ++i)
+    {
+        sum += buff[i];
+    }
+    LOG_INF("buff sum %d",sum);
     int rc;
     AccessPointEsp32::getInstance().start();
     k_thread_create(&my_thread, my_stack, STACK_SIZE,
