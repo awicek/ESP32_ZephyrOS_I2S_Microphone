@@ -11,30 +11,28 @@
  * One sample has 2Bytes 
  * This queue can store up to 1s of recording
  */ 
+#define SOUND_Q_NOF_BUF 64
+#define SOUND_Q_SIZE_OF_CONTAINER 256
+
 class SoundQueue
 {
-
-static constexpr size_t NOF_BUF = 64;
-static constexpr size_t SIZE_OF_CONTAINER = 512;
-
 public:
-    bool pop();
-    bool push();
-    bool getFrontContainer(uint8_t* container);
-    bool getRearContainer(uint8_t* containter);
+    SoundQueue();
+    void pop();
+    void push();
+    bool getFrontContainer(uint16_t*& container);
+    bool getRearContainer(uint16_t*& containter);
+    void waitForContainer();
     inline size_t getContainerSize() const;
 
 private:
-    uint8_t _buffers[NOF_BUF][SIZE_OF_CONTAINER];
+    uint16_t (*_buffers)[SOUND_Q_SIZE_OF_CONTAINER];
     size_t _idx_front = 0;
     size_t _idx_rear = 0;
     size_t _capacity = 0;
+    struct k_mutex _mtx; // gurards _capacity
+    
+    struct k_sem _capacity_sem; 
 };
-
-
-inline size_t SoundQueue::getContainerSize() const
-{
-    return SIZE_OF_CONTAINER;
-}
 
 #endif // SOUND_QUEUE_H_

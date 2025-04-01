@@ -12,17 +12,14 @@ LOG_MODULE_REGISTER(sound_recording, LOG_LEVEL_DBG);
 // sample frequency for 1 ch is 16000
 #define SAMPLE_FREQUENCY    32000 
 #define SAMPLE_BIT_WIDTH    32
-#define BYTES_PER_SAMPLE    sizeof(uint32_t)
+#define SAMPLE_SIZE         8
 // only 2 channels are supported
 #define NUMBER_OF_CHANNELS  2   
-#define SAMPLES_PER_BLOCK   512
 #define INITIAL_BLOCKS      4
 #define TIMEOUT             50
 
-// block size is 0.5kB * 4 = 2kB
-#define BLOCK_SIZE  (BYTES_PER_SAMPLE * SAMPLES_PER_BLOCK)
+#define BLOCK_SIZE  SOUND_Q_SIZE_OF_CONTAINER * SAMPLE_SIZE
 #define BLOCK_COUNT (INITIAL_BLOCKS + 2)
-// size of the mem_slab is 2kB * 6 = 12KB
 K_MEM_SLAB_DEFINE_STATIC(mem_slab, BLOCK_SIZE, BLOCK_COUNT, 4);
 
 
@@ -31,7 +28,8 @@ K_MEM_SLAB_DEFINE_STATIC(mem_slab, BLOCK_SIZE, BLOCK_COUNT, 4);
 K_THREAD_STACK_DEFINE(i2s_record_stack, STACK_SIZE_I2S);
 
 
-I2SWrapper::I2SWrapper()
+I2SWrapper::I2SWrapper(SoundQueue* queue):
+    _data_queue(queue)
 {
     int rc;
     
@@ -143,7 +141,6 @@ void I2SWrapper::rxLoop(void *I2SWrapper_ptr, void*, void*)
                 LOG_ERR("error reading i2s rc: %d", rc);
             }
         }
-        
     }
 }
 
@@ -151,22 +148,30 @@ void I2SWrapper::rxLoop(void *I2SWrapper_ptr, void*, void*)
 
 void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
 {
-	int16_t *i2s_data_ptr = (int16_t*)mem_block;
-	const int MEAN_CONST =  16;
+    static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
+    static uint16_t *data_container = NULL;
 
-	int32_t mean;
-	int idx_inc = 0;
-	int i;
-	for (i = 0; i < size / 4 / MEAN_CONST; i += 1)
-	{
-		mean = 0;
-		for (int j = 0; j < MEAN_CONST; ++j )
-		{
-			mean += i2s_data_ptr[(i*MEAN_CONST + j)  * 4 + 3 ];
-		}
-        printk("%d\n", mean / MEAN_CONST);
-	}
+    uint16_t *raw_data = (uint16_t*)mem_block;
+    if (size != (SAMPLE_SIZE * container_size))
+    {
+        LOG_ERR("mem_block has wrong size");
+	    goto free;
+    }
+    
+    if (!_data_queue->getFrontContainer(data_container))
+    {
+        LOG_ERR("queue is full");
+        goto free;
+    }
 
+    for (size_t i = 0; i < container_size; ++i)
+    {
+        data_container[i] = raw_data[i*4+3];
+    }
+
+    _data_queue->push();
+
+free:
 	k_mem_slab_free(&mem_slab, mem_block);
 }
 

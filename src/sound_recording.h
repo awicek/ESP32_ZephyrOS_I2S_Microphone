@@ -3,13 +3,13 @@
 
 #include <zephyr/kernel.h>
 
-
+#include "sound_buff.h"
 
 
 class I2SWrapper
 {    
 public:
-    I2SWrapper();
+    I2SWrapper(SoundQueue *queue);
     bool isReady();
     bool startRecording();
     bool stopRecording();
@@ -20,6 +20,7 @@ private:
     const struct device *_i2s_device;
     struct k_thread _rx_thread = {0};
     struct k_sem _start_recording_sem = {0}; // signals _rx_thread to start recording
+    SoundQueue *_data_queue = NULL;
 
     bool _is_ready = false;
     

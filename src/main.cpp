@@ -6,8 +6,10 @@
 
 #include "access_point.h"
 #include "sound_recording.h"
-static I2SWrapper sound_wrapper;
-static uint8_t buff[64 * 512];
+#include "sound_buff.h"
+static SoundQueue s_queue;
+static I2SWrapper sound_wrapper(&s_queue);
+
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
@@ -15,8 +17,12 @@ LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
 #define STACK_SIZE 4096  // Stack size for the thread
 #define PRIORITY 5       // Thread priority
 
+#define STACK_SIZE_TX 4096  // Stack size for the thread
+#define PRIORITY_TX 5       // Thread priority
+
 #define SERVER_IP "192.168.4.11"  // Change to your PC's IP
-#define SERVER_PORT 1001
+
+static int sock;
 
 void identify_caller(void) {
     struct k_thread *current_thread = k_current_get();
@@ -32,7 +38,6 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     identify_caller();
     int rc;
     struct sockaddr_in server_addr;
-    int sock;
     char msg[1024];
     memset(msg, (int)'a', sizeof(msg));
     
@@ -58,20 +63,6 @@ void thread_function(void *arg1, void *arg2, void *arg3)
             break;
         k_sleep(K_MSEC(1000));
     }
-    // int64_t stop = 0;
-    // int64_t start = k_uptime_get();
-    // for (int i = 0; i < 100; )
-    // {   
-    //     rc = zsock_send(sock, msg, sizeof(msg) , 0);
-    //     if (rc == sizeof(msg))
-    //         ++i;
-    //     printk("%d\n", rc);
-    // }
-    // stop = k_uptime_get();
-    // k_sleep(K_MSEC(3000));
-    // LOG_INF("time = %lld , stop %lld, start %lld", stop -start, stop, start);
-    // printk("%lld %lld\n", start, stop);
-
     while(true)
     {
         rc = zsock_recv(sock, msg, sizeof(msg), 0);
@@ -80,8 +71,10 @@ void thread_function(void *arg1, void *arg2, void *arg3)
             LOG_HEXDUMP_DBG(msg, rc, "received tcp packet");
             if (msg[0] == 's')
                 sound_wrapper.startRecording();
-            else 
+            else
+            {
                 sound_wrapper.stopRecording();
+            }   
         }
         else 
         {
@@ -92,8 +85,28 @@ void thread_function(void *arg1, void *arg2, void *arg3)
     zsock_close(sock);
 }
 
+
+void tx_function(void *arg1, void *arg2, void *arg3)
+{
+    uint16_t *data;
+    while(1)
+    {
+        s_queue.waitForContainer();
+
+        if (s_queue.getRearContainer(data))
+        {
+            zsock_send(sock, data, SOUND_Q_SIZE_OF_CONTAINER * 2, 0);
+            s_queue.pop();
+        }
+    }
+}
+
+
+
 K_THREAD_STACK_DEFINE(my_stack, STACK_SIZE);
 static struct k_thread my_thread;
+K_THREAD_STACK_DEFINE(my_stack_tx, STACK_SIZE);
+static struct k_thread my_thread_tx;
 
 
 void print_thread_info(const struct k_thread *thread, void *user_data) {
@@ -107,24 +120,19 @@ void print_thread_info(const struct k_thread *thread, void *user_data) {
 
 int main(void)
 {
-    uint64_t sum;
-    memset(buff, 2, sizeof(buff));
-    for (int i = 0; i < 100000; ++i)
-    {
-        sum += buff[i];
-    }
-    LOG_INF("buff sum %d",sum);
     int rc;
     AccessPointEsp32::getInstance().start();
     k_thread_create(&my_thread, my_stack, STACK_SIZE,
 		thread_function, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
+    k_thread_create(&my_thread_tx, my_stack_tx, STACK_SIZE_TX,
+            tx_function, NULL, NULL, NULL,
+            PRIORITY_TX, 0, K_NO_WAIT);
     if (sound_wrapper.isReady())
     {
         LOG_INF("i2s is ready");
     }
     
 	k_thread_foreach(print_thread_info, NULL);
-
     return 0;
 }

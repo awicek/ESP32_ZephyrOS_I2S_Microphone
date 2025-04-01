@@ -11,4 +11,5 @@ project(wifi_example)
 target_sources(app PRIVATE src/main.cpp)
 target_sources(app PRIVATE src/sound_recording.cpp)
 target_sources(app PRIVATE src/access_point.cpp)
+target_sources(app PRIVATE src/sound_buff.cpp)
 
