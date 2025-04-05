@@ -3,7 +3,7 @@
 
 #include <zephyr/kernel.h>
 
-#include "sound_buff.h"
+#include "sound_queue.h"
 
 
 class I2SWrapper

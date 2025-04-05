@@ -6,7 +6,7 @@
 
 #include "access_point.h"
 #include "sound_recording.h"
-#include "sound_buff.h"
+#include "sound_queue.h"
 static SoundQueue s_queue;
 static I2SWrapper sound_wrapper(&s_queue);
 
@@ -82,7 +82,7 @@ void thread_function(void *arg1, void *arg2, void *arg3)
         }
     }   
 
-    zsock_close(sock);
+    zsock_close(sock);;
 }
 
 
@@ -100,7 +100,6 @@ void tx_function(void *arg1, void *arg2, void *arg3)
         }
     }
 }
-
 
 
 K_THREAD_STACK_DEFINE(my_stack, STACK_SIZE);

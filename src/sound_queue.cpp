@@ -1,4 +1,4 @@
-#include "sound_buff.h"
+#include "sound_queue.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(sound_queue, LOG_LEVEL_ERR);
