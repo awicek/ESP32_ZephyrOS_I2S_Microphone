@@ -3,16 +3,29 @@
     "configurations": [
         {
             "name": "Debug Zephyr on ESP32-S3",
-            "type": "cortex-debug",
+            "type": "cppdbg",
             "request": "launch",
-            "servertype": "openocd",
-            "interface": "cmsis-dap",
-            "device": "ESP32-S3",
-            "configFiles": [
-                "path/to/esp32s3_devkitc.cfg"
+            "program": "${input:elfPath}",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/home/richard/zephyr-sdk-0.17.0/xtensa-espressif_esp32s3_zephyr-elf/bin/xtensa-espressif_esp32s3_zephyr-elf-gdb",
+            "miDebuggerServerAddress": "localhost:3333",
+            "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "description": "Enable pretty printing for gdb",
+                    "ignoreFailures": true
+                }
             ],
-            "executable": "${workspaceFolder}/build/zephyr/zephyr.elf",
-            "runToMain": true
+        }
+    ],
+    "inputs": [
+        {
+            "id": "elfPath",
+            "type": "promptString",
+            "description": "Path to the ELF file",
         }
     ]
 }

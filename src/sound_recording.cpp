@@ -174,4 +174,3 @@ void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
 free:
 	k_mem_slab_free(&mem_slab, mem_block);
 }
-

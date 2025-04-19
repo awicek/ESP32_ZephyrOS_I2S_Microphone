@@ -12,6 +12,7 @@ class AccessPointEsp32
 {
 public:
     static AccessPointEsp32& getInstance();
+    void addOnConnectSemaphore(struct k_sem *sem);
     int start();
 
 private:
@@ -29,5 +30,7 @@ private:
     struct net_mgmt_event_callback _cb;
     struct in_addr _addr;
 	struct in_addr _netmask_addr;
+
+    static struct k_sem *_on_connect_sem;
 };
 #endif

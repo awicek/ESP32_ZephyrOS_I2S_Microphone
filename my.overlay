@@ -12,6 +12,13 @@
 		compatible = "espressif,esp32-wifi";
 		status = "okay";
 	};
+
+
+	chosen {
+		zephyr,console = &usb_serial;
+		zephyr,shell-uart = &usb_serial;
+	};
+
 };
 
 &pinctrl {
@@ -41,4 +48,11 @@ i2s_rx: &i2s1 {
 
 &dma {
 	status = "okay";
+};
+
+
+
+
+&usb_serial {
+    status = "okay";
 };

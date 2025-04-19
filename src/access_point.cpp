@@ -10,6 +10,9 @@ LOG_MODULE_REGISTER(AccessPointEsp32);
 	 NET_EVENT_WIFI_AP_STA_CONNECTED | NET_EVENT_WIFI_AP_STA_DISCONNECTED)
 #define MACSTR "%02X:%02X:%02X:%02X:%02X:%02X"
 
+struct k_sem *AccessPointEsp32::_on_connect_sem = NULL;
+
+
 AccessPointEsp32& AccessPointEsp32::getInstance()
 {
 	static AccessPointEsp32 instance;
@@ -49,6 +52,13 @@ void AccessPointEsp32::wifiEventHandler(struct net_mgmt_event_callback *cb, uint
 		struct wifi_ap_sta_info *sta_info = (struct wifi_ap_sta_info *)cb->info;
 		LOG_INF("station: " MACSTR " joined ", sta_info->mac[0], sta_info->mac[1],
 			sta_info->mac[2], sta_info->mac[3], sta_info->mac[4], sta_info->mac[5]);
+		if (!k_is_in_isr()) {
+			k_sem_give(_on_connect_sem);
+			LOG_ERR("not isr");
+
+		} else {
+			LOG_ERR("Tried to give semaphore from ISR!");
+		}
 		break;
 	}
 	case NET_EVENT_WIFI_AP_STA_DISCONNECTED:
@@ -147,3 +157,7 @@ int AccessPointEsp32::enableApMode(void)
 };
 
 
+void AccessPointEsp32::addOnConnectSemaphore(struct k_sem *sem)
+{
+	_on_connect_sem = sem;
+}
