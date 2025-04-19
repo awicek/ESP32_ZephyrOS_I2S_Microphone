@@ -31,7 +31,7 @@ bool NetworkCom::tryConnectSocket(int sock)
     int rc;
     for (size_t i = 0; i < SOCKET_RECONNECT_COUNT; i++)
     {
-        LOG_INF("connectint to socket");
+        LOG_INF("connectint to ");
         rc = zsock_connect(sock, (struct sockaddr *)&_server_addr, sizeof(_server_addr));
         if (rc > 0)
             break;

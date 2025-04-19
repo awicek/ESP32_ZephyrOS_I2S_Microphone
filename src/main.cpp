@@ -21,41 +21,56 @@ LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
 #define SERVER_PORT 2803         // Change to your server's port
 
 
-int main(void)
+#define PRIORITY_WAITING 50
+#define STACK_SIZE_WAITING 4096
+K_THREAD_STACK_DEFINE(waiting_for_server_stack, STACK_SIZE_WAITING);
+static struct k_thread waiting_for_server_thread;
+
+static struct k_sem pc_connected_sem;
+
+void waiting(void *arg1, void *arg2, void *arg3)
 {
     int rc;
-    struct k_sem pc_connected_sem;
+    k_sem_take(&pc_connected_sem, K_FOREVER);
+    LOG_INF("Connected");
+    LOG_INF("Connecting to the server... ");
+    NetworkCom network_com(&s_queue);
+    rc = network_com.connect(SERVER_IP, SERVER_PORT, SERVER_PORT+1);
+    if (rc < 0)
+    {
+        LOG_INF("connection failed");
+    }
+    else
+    {
+        LOG_INF("connection success");
+    }
+
+    k_sleep(K_FOREVER);
+    return;
+}
+
+int main(void)
+{
+    
+    int rc;
     rc = k_sem_init(&pc_connected_sem, 0, 1);
     if (rc != 0)
     {
         LOG_ERR("Failed to initialize semaphore");
         return 0;
     }
-    AccessPointEsp32::getInstance().addOnConnectSemaphore(&pc_connected_sem);
-    AccessPointEsp32::getInstance().start();
-    LOG_INF("Waiting for connection...");
 
-    k_sem_take(&pc_connected_sem, K_FOREVER);
-    // k_msleep(5000);
-    LOG_INF("Connected");
+
+    k_thread_create(&waiting_for_server_thread, waiting_for_server_stack, STACK_SIZE_WAITING,
+                    waiting, NULL, NULL, NULL,
+                    PRIORITY_WAITING, 0, K_NO_WAIT);
 
     if (sound_wrapper.isReady())
-    {
         LOG_INF("i2s is ready");
-    }
-    LOG_INF("Connecting to the server... ");
-    // k_msleep(3000);
-    // NetworkCom network_com(&s_queue);
-    // rc = network_com.connect(SERVER_IP, SERVER_PORT, SERVER_PORT+1);
-    // if (rc < 0)
-    // {
-    //     LOG_INF("connection failed");
-    // }
-    // else
-    // {
-    //     LOG_INF("connection success");
-    // }
 
+    AccessPointEsp32::getInstance().addOnConnectSemaphore(&pc_connected_sem);
+    AccessPointEsp32::getInstance().start();
     k_sleep(K_FOREVER);
-    return 0;
+
+
 }
