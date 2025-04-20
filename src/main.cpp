@@ -35,11 +35,6 @@ void waiting(void *arg1, void *arg2, void *arg3)
     int rc;
     k_sem_take(&pc_connected_sem, K_FOREVER);
     LOG_INF("PC connected");
-    for (int i = 0; i < 10; ++i)
-    {
-        LOG_INF("%d", 10-i);
-        k_msleep(1000);
-    }
 
 
     LOG_INF("Connecting to the server... ");
@@ -54,6 +49,8 @@ void waiting(void *arg1, void *arg2, void *arg3)
         LOG_INF("Connection success");
     }
 
+    UserButtons::getInstance().setNetworkCom(&network_com);
+    UserButtons::getInstance().setSoundRecording(&sound_wrapper);
     UserButtons::getInstance().enableButtons(true);
 
     k_sleep(K_FOREVER);

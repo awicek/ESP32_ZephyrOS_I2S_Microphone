@@ -18,12 +18,15 @@ public:
     NetworkCom(SoundQueue *queue);
 
     int connect(const char* ip, int port_udp, int port_tcp);
-    int sendDataTCP(uint8_t *data, size_t len);
+
+    int startRecording();
+    int stopRecording();
 
 private:
     static void txLoop(void *network_com_ptr, void *arg2, void *arg3);
     static void rxLoop(void *network_com_ptr, void *arg2, void *arg3);
     int tryConnectSocket(int sock);
+    int sendDataTCP(const uint8_t *data, size_t len);
 
     SoundQueue *_data_queue = NULL;
     struct k_thread _udp_tx_thread;

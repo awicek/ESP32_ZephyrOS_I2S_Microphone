@@ -18,10 +18,31 @@ class SoundQueue
 {
 public:
     SoundQueue();
+
+    /**
+     * Pop from queue. Shoud be called after you process rear container,
+     * obtained with getRearContainer().
+     */
     void pop();
+
+    /**
+     * Push to the queu. It just advace front pointer.
+     */
     void push();
+
+    /** Get pointer to the Front containt.
+     *  Might fail when the queue is full.
+     */
     bool getFrontContainer(uint16_t*& container);
+
+    /** Get the Reaar container.
+     *  Might fail. But when you call waitForContainer() it will always return true.
+     */
     bool getRearContainer(uint16_t*& containter);
+
+    /**
+     * Its blocking function 
+     */
     void waitForContainer();
     inline size_t getContainerSize() const;
 

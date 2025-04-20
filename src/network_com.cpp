@@ -3,11 +3,11 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(NetworkCommunication, LOG_LEVEL_DBG);
 
-#define UDP_PRIORITY 50
+#define UDP_PRIORITY 0
 #define UDP_STACK_SIZE 4096
 K_THREAD_STACK_DEFINE(udp_tx_stack, UDP_STACK_SIZE);
 
-#define TCP_PRIORITY 52
+#define TCP_PRIORITY 10
 #define TCP_STATCK_SIZE 4096
 K_THREAD_STACK_DEFINE(tcp_rx_stack, TCP_STATCK_SIZE);
 
@@ -95,20 +95,17 @@ int NetworkCom::connect(const char* ip, int port_udp, int port_tcp)
 void NetworkCom::txLoop(void *network_com_ptr, void *arg2, void *arg3)
 {
     NetworkCom *this_ptr = static_cast<NetworkCom *>(network_com_ptr);
+    uint16_t *data_ptr;
 
     k_sem_take(&this_ptr->_udp_socket_sem, K_FOREVER);
     LOG_INF("txLoop: udp socket binded");
-
-    uint16_t data[125];
-    for (int i = 0; i < 125; ++i)
-    {
-        data[i] = i;
-    }
     
     while (1)
     {
-        zsock_send(this_ptr->_udp_sock, data, sizeof(data), 0);
-        k_sleep(K_MSEC(500));
+        this_ptr->_data_queue->waitForContainer();
+        this_ptr->_data_queue->getRearContainer(data_ptr);
+        ssize_t rc = zsock_send(this_ptr->_udp_sock, data_ptr, SOUND_Q_SIZE_OF_CONTAINER * 2, 0);  // *2 because the datata_ptr is int16_t
+        this_ptr->_data_queue->pop();
     }
 }
 
@@ -117,6 +114,8 @@ void NetworkCom::rxLoop(void *network_com_ptr, void *arg2, void *arg3)
     NetworkCom *this_ptr = static_cast<NetworkCom *>(network_com_ptr);
     
     k_sem_take(&this_ptr->_tcp_socket_sem, K_FOREVER);
+    LOG_INF("rxLoop: tcp socket binded");
+
     uint8_t msg_buf[256];
     int rc;
 
@@ -129,4 +128,25 @@ void NetworkCom::rxLoop(void *network_com_ptr, void *arg2, void *arg3)
         }
         
     }
+}
+
+
+int NetworkCom::startRecording()
+{
+    return sendDataTCP(MAP_START_RECORDING, sizeof(MAP_START_RECORDING));
+}
+
+
+int NetworkCom::stopRecording()
+{
+    return sendDataTCP(MAP_START_RECORDING, sizeof(MAP_STOP_RECORDING));
+}
+
+
+int NetworkCom::sendDataTCP(const uint8_t *data, size_t len)
+{
+    ssize_t rc = zsock_send(_tcp_sock, data, len, 0);
+    if (rc > 0 && rc == len)
+        return 0;
+    return -1;
 }

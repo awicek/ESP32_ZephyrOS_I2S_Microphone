@@ -1,6 +1,9 @@
 #ifndef USER_BUTTONS_H_
 #define USER_BUTTONS_H_
 
+#include "sound_recording.h"
+#include "network_com.h"      
+
 #include <zephyr/drivers/gpio.h>
 
 #define L_BUTTON_DT_LABEL l_button
@@ -14,6 +17,9 @@ class UserButtons
 public:
     
     static UserButtons& getInstance();
+
+    void setNetworkCom(NetworkCom *network_com);
+    void setSoundRecording(I2SWrapper *soudn_rec);
 
     bool isReady();
 
@@ -36,6 +42,9 @@ private:
     static struct gpio_dt_spec _l_button;
     static struct gpio_dt_spec _r_button;
     static bool _buttons_enabled;
+    static bool _recording;
+    static NetworkCom *_network_com;
+    static I2SWrapper *_sound_rec;
     
     bool _is_initialized = false;
 };

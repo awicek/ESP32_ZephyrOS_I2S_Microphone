@@ -1,5 +1,7 @@
 #include "user_buttons.h"
 
+#include "sound_recording.h"
+#include "network_com.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -10,6 +12,9 @@ struct gpio_callback UserButtons::_buttons_cb_data = {};
 struct gpio_dt_spec UserButtons::_l_button = {};
 struct gpio_dt_spec UserButtons::_r_button = {};
 bool UserButtons::_buttons_enabled = false;
+bool UserButtons::_recording = false;
+NetworkCom* UserButtons::_network_com = NULL;
+I2SWrapper* UserButtons::_sound_rec = NULL;
 
 UserButtons::UserButtons()
 {
@@ -123,6 +128,23 @@ void UserButtons::rPress()
     if (!_buttons_enabled)
         return;
     LOG_DBG("R button pressed");
+    if (_recording)
+    {
+        if (_network_com == NULL || _sound_rec == NULL)
+        {
+            LOG_ERR("network_com or sound_rec is not initialized");
+            return;
+        }
+        _sound_rec->stopRecording();
+
+        if (0 != _network_com->stopRecording())
+        {
+            LOG_ERR("stop recording failed");
+            return;
+        }
+        
+        _recording = false;
+    }
 }
 
 
@@ -131,9 +153,36 @@ void UserButtons::lPress()
     if (!_buttons_enabled)
         return;
     LOG_DBG("L button pressed");
+    if (!_recording)
+    {
+        if (_network_com == NULL || _sound_rec == NULL)
+        {
+            LOG_ERR("network_com or sound_rec is not initialized");
+            return;
+        }
+        if (0 != _network_com->startRecording())
+        {
+            LOG_ERR("start recording failed");
+            return;
+        }
+        _sound_rec->startRecording();
+        
+        _recording = true;
+    }
+
 }
 
 void UserButtons::enableButtons(bool enable)
 {
     _buttons_enabled = enable;
+}
+
+void UserButtons::setNetworkCom(NetworkCom *network_com)
+{
+    _network_com = network_com;
+}
+
+void UserButtons::setSoundRecording(I2SWrapper *sound_rec)
+{
+    _sound_rec = sound_rec;
 }

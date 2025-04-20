@@ -8,11 +8,17 @@
 
 class I2SWrapper
 {    
+/** Dowsamples the sample rate that is set to 32k/s.
+ *  AVRG = 4 -> sample rate 8k/s
+ *  Keep it in power of 2 (1, 2, 4 ...)*/
+static constexpr uint8_t AVRG = 1;
+
 public:
     I2SWrapper(SoundQueue *queue);
     bool isReady();
     bool startRecording();
     bool stopRecording();
+
 private:
     static void rxLoop(void *I2SWrapper_ptr, void*, void*);
     void processI2SMemBlock(void *mem_block, size_t size);
