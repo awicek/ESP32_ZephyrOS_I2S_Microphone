@@ -13,12 +13,22 @@
 		status = "okay";
 	};
 
+	// console over usb (when uncommented -> console is over uart)
+	// chosen {
+	// 	zephyr,console = &usb_serial;
+	// 	zephyr,shell-uart = &usb_serial;
+	// };
 
-	chosen {
-		zephyr,console = &usb_serial;
-		zephyr,shell-uart = &usb_serial;
+	buttons {
+		compatible = "gpio-keys";
+		status= "okay";
+		l_button: l_button {
+			gpios = <&gpio0 15 0>;
+		};
+		r_button: r_button {
+			gpios = <&gpio0 16 0>;
+		};
 	};
-
 };
 
 &pinctrl {

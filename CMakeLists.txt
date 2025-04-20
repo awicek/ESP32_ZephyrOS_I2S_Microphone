@@ -13,4 +13,5 @@ target_sources(app PRIVATE src/sound_recording.cpp)
 target_sources(app PRIVATE src/access_point.cpp)
 target_sources(app PRIVATE src/sound_queue.cpp)
 target_sources(app PRIVATE src/network_com.cpp)
+target_sources(app PRIVATE src/user_buttons.cpp)
 
