@@ -139,7 +139,7 @@ int NetworkCom::startRecording()
 
 int NetworkCom::stopRecording()
 {
-    return sendDataTCP(MAP_START_RECORDING, sizeof(MAP_STOP_RECORDING));
+    return sendDataTCP(MAP_STOP_RECORDING, sizeof(MAP_STOP_RECORDING));
 }
 
 

@@ -144,14 +144,10 @@ void I2SWrapper::rxLoop(void *I2SWrapper_ptr, void*, void*)
 }
 
 
-
 void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
 {
     static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
-    static const size_t loop_size = SOUND_Q_SIZE_OF_CONTAINER / AVRG;
     static uint16_t *data_container = NULL;
-    static int8_t loop_idx = 0; // when loop_idx == AVRG the data are queued
-
 
     uint16_t *raw_data = (uint16_t*)mem_block;
     if (size != (SAMPLE_SIZE * container_size))
@@ -160,28 +156,62 @@ void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
 	    goto free;
     }
     
-    if (loop_idx == 0)
+    if (!_data_queue->getFrontContainer(data_container))
     {
-        if (!_data_queue->getFrontContainer(data_container))
-        {
-            LOG_ERR("queue is full");
-            goto free;
-        }
+        LOG_ERR("queue is full");
+        goto free;
     }
 
-    for (size_t i = 0; i < container_size; i += AVRG)
+    for (size_t i = 0; i < container_size; ++i)
     {
-        data_container[i/AVRG + AVRG * loop_size] = raw_data[i*4+3];
+        data_container[i] = raw_data[i*4+3];
     }
 
-    loop_idx +=1;
-    if (loop_idx == AVRG)
-    {
-        _data_queue->push();
-        loop_idx = 0;
-    }
+    _data_queue->push();
 
 free:
 	k_mem_slab_free(&mem_slab, mem_block);
 }
+
+
+
+// void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
+// {
+//     static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
+//     static const size_t loop_size = SOUND_Q_SIZE_OF_CONTAINER / AVRG;
+//     static uint16_t *data_container = NULL;
+//     static int8_t loop_idx = 0; // when loop_idx == AVRG the data are queued
+
+
+//     uint16_t *raw_data = (uint16_t*)mem_block;
+//     if (size != (SAMPLE_SIZE * container_size))
+//     {
+//         LOG_ERR("mem_block has wrong size");
+// 	    goto free;
+//     }
+    
+//     if (loop_idx == 0)
+//     {
+//         if (!_data_queue->getFrontContainer(data_container))
+//         {
+//             LOG_ERR("queue is full");
+//             goto free;
+//         }
+//     }
+
+//     for (size_t i = 0; i < container_size; i += AVRG)
+//     {
+//         data_container[i/AVRG + AVRG * loop_size] = raw_data[i*4+3];
+//     }
+
+//     loop_idx +=1;
+//     if (loop_idx == AVRG)
+//     {
+//         _data_queue->push();
+//         loop_idx = 0;
+//     }
+
+// free:
+// 	k_mem_slab_free(&mem_slab, mem_block);
+// }
 
