@@ -29,6 +29,7 @@
 			gpios = <&gpio0 16 0>;
 		};
 	};
+	
 };
 
 &pinctrl {
@@ -42,6 +43,16 @@
 		group2 {
 			pinmux = <I2S1_I_SD_GPIO5>;
 			input-enable;
+		};
+	};
+	uart2_default: uart2_default {
+		group1 {
+			pinmux = < UART2_TX_GPIO9 >;
+			output-high;
+		};
+		group2 {
+			pinmux = < UART2_RX_GPIO10 >;
+			bias-pull-up;
 		};
 	};
 };
@@ -61,8 +72,14 @@ i2s_rx: &i2s1 {
 };
 
 
-
-
 &usb_serial {
     status = "okay";
 };
+
+&uart2 {
+    status = "okay";
+    pinctrl-0 = <&uart2_default>;
+    pinctrl-names = "default";
+    current-speed = < 115200 >;
+};
+

@@ -1,4 +1,5 @@
 #include "network_com.h"
+#include "speach.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(NetworkCommunication, LOG_LEVEL_DBG);
@@ -104,7 +105,7 @@ void NetworkCom::txLoop(void *network_com_ptr, void *arg2, void *arg3)
     {
         this_ptr->_data_queue->waitForContainer();
         this_ptr->_data_queue->getRearContainer(data_ptr);
-        ssize_t rc = zsock_send(this_ptr->_udp_sock, data_ptr, SOUND_Q_SIZE_OF_CONTAINER * 2, 0);  // *2 because the datata_ptr is int16_t
+        zsock_send(this_ptr->_udp_sock, data_ptr, SOUND_Q_SIZE_OF_CONTAINER * 2, 0);  // *2 because the datata_ptr is int16_t
         this_ptr->_data_queue->pop();
     }
 }
@@ -124,7 +125,9 @@ void NetworkCom::rxLoop(void *network_com_ptr, void *arg2, void *arg3)
         rc = zsock_recv(this_ptr->_tcp_sock, msg_buf, sizeof(msg_buf), 0);
         if (rc > 0)
         {
-            LOG_HEXDUMP_INF(msg_buf, rc, "rxLoop: msg");
+            LOG_HEXDUMP_INF(msg_buf, (uint32_t)rc, "rxLoop: msg");
+            msg_buf[rc] = '\0';
+            Speach::getInstance().speak((char*)msg_buf);
         }
         
     }
@@ -146,7 +149,7 @@ int NetworkCom::stopRecording()
 int NetworkCom::sendDataTCP(const uint8_t *data, size_t len)
 {
     ssize_t rc = zsock_send(_tcp_sock, data, len, 0);
-    if (rc > 0 && rc == len)
+    if (rc > 0)
         return 0;
     return -1;
 }

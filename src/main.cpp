@@ -4,12 +4,13 @@
 
 #include <stdlib.h>
 
-    
+
 #include "access_point.h"
 #include "sound_recording.h"
 #include "sound_queue.h"
 #include "network_com.h"
 #include "user_buttons.h"
+#include "speach.h"
 
 static SoundQueue s_queue;
 static I2SWrapper sound_wrapper(&s_queue);
@@ -35,8 +36,8 @@ void waiting(void *arg1, void *arg2, void *arg3)
     int rc;
     k_sem_take(&pc_connected_sem, K_FOREVER);
     LOG_INF("PC connected");
-
-
+    
+    
     LOG_INF("Connecting to the server... ");
     NetworkCom network_com(&s_queue);
     rc = network_com.connect(SERVER_IP, SERVER_PORT, SERVER_PORT+1);
@@ -49,13 +50,17 @@ void waiting(void *arg1, void *arg2, void *arg3)
         LOG_INF("Connection success");
     }
 
+    Speach::getInstance().init();
+
     UserButtons::getInstance().setNetworkCom(&network_com);
     UserButtons::getInstance().setSoundRecording(&sound_wrapper);
     UserButtons::getInstance().enableButtons(true);
-
+    
     k_sleep(K_FOREVER);
     return;
 }
+
+
 
 int main(void)
 {
