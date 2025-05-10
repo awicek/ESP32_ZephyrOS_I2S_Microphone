@@ -3,6 +3,7 @@
 
 #include "sound_recording.h"
 #include "network_com.h"      
+#include "led_controler.h"
 
 #include <zephyr/drivers/gpio.h>
 

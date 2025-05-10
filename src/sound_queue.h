@@ -11,7 +11,7 @@
  * One sample has 2Bytes 
  * This queue can store up to 1s of recording
  */ 
-#define SOUND_Q_NOF_BUF 64
+#define SOUND_Q_NOF_BUF 20
 #define SOUND_Q_SIZE_OF_CONTAINER 256
 
 class SoundQueue

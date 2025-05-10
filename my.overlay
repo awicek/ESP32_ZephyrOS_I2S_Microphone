@@ -16,19 +16,30 @@
 	// console over usb (when uncommented -> console is over uart)
 	// chosen {
 	// 	zephyr,console = &usb_serial;
-	// 	zephyr,shell-uart = &usb_serial;
+	// 	zephyr,shell-uart = &usb_s erial;
 	// };
 
 	buttons {
 		compatible = "gpio-keys";
 		status= "okay";
 		l_button: l_button {
-			gpios = <&gpio0 15 0>;
+			gpios = <&gpio0 17 0>;
 		};
 		r_button: r_button {
-			gpios = <&gpio0 16 0>;
+			gpios = <&gpio0 18 0>;
 		};
 	};
+
+	
+	leds {
+        compatible = "gpio-leds";
+        green_led: green_led{
+            gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
+        };
+		red_led: red_led{
+            gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+        };
+    };
 	
 };
 
@@ -36,7 +47,7 @@
 	i2s1_pinconf: i2s1_pinconf {
 		group1 {
 			pinmux = <I2S0_MCLK_GPIO42>,
-					 <I2S1_I_WS_GPIO6>,
+					 <I2S1_I_WS_GPIO15>,
 					 <I2S1_I_BCK_GPIO4>;
 			output-enable;
 		};

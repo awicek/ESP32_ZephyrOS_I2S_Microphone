@@ -11,7 +11,7 @@ class I2SWrapper
 /** Dowsamples the sample rate that is set to 32k/s.
  *  AVRG = 4 -> sample rate 8k/s
  *  Keep it in power of 2 (1, 2, 4 ...)*/
-static constexpr uint8_t AVRG = 1;
+static constexpr uint8_t AVRG = 4;
 
 public:
     I2SWrapper(SoundQueue *queue);

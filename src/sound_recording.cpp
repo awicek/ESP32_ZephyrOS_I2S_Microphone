@@ -11,6 +11,10 @@ LOG_MODULE_REGISTER(sound_recording, LOG_LEVEL_DBG);
 // sample frequency is 32000, but its two channels so 
 #define SAMPLE_FREQUENCY    32000 
 #define SAMPLE_BIT_WIDTH    32
+/**
+ * one sample is 8 bits long 4 bytes L channel 4 bytes R channel 
+ * only 18 bits out of 32 bits in each channel are valid 
+ */
 #define SAMPLE_SIZE         8
 // only 2 channels are supported
 #define NUMBER_OF_CHANNELS  2   
@@ -144,44 +148,10 @@ void I2SWrapper::rxLoop(void *I2SWrapper_ptr, void*, void*)
 }
 
 
-void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
-{
-    static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
-    static uint16_t *data_container = NULL;
-
-    uint16_t *raw_data = (uint16_t*)mem_block;
-    if (size != (SAMPLE_SIZE * container_size))
-    {
-        LOG_ERR("mem_block has wrong size");
-	    goto free;
-    }
-    
-    if (!_data_queue->getFrontContainer(data_container))
-    {
-        LOG_ERR("queue is full");
-        goto free;
-    }
-
-    for (size_t i = 0; i < container_size; ++i)
-    {
-        data_container[i] = raw_data[i*4+3];
-    }
-
-    _data_queue->push();
-
-free:
-	k_mem_slab_free(&mem_slab, mem_block);
-}
-
-
-
 // void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
 // {
 //     static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
-//     static const size_t loop_size = SOUND_Q_SIZE_OF_CONTAINER / AVRG;
 //     static uint16_t *data_container = NULL;
-//     static int8_t loop_idx = 0; // when loop_idx == AVRG the data are queued
-
 
 //     uint16_t *raw_data = (uint16_t*)mem_block;
 //     if (size != (SAMPLE_SIZE * container_size))
@@ -190,28 +160,91 @@ free:
 // 	    goto free;
 //     }
     
-//     if (loop_idx == 0)
+//     if (!_data_queue->getFrontContainer(data_container))
 //     {
-//         if (!_data_queue->getFrontContainer(data_container))
-//         {
-//             LOG_ERR("queue is full");
-//             goto free;
-//         }
+//         LOG_ERR("queue is full");
+//         goto free;
 //     }
 
-//     for (size_t i = 0; i < container_size; i += AVRG)
+//     for (size_t i = 0; i < container_size; ++i)
 //     {
-//         data_container[i/AVRG + AVRG * loop_size] = raw_data[i*4+3];
+//         data_container[i] = raw_data[i*4+3];
 //     }
 
-//     loop_idx +=1;
-//     if (loop_idx == AVRG)
-//     {
-//         _data_queue->push();
-//         loop_idx = 0;
-//     }
+//     _data_queue->push();
 
 // free:
 // 	k_mem_slab_free(&mem_slab, mem_block);
 // }
+
+
+
+void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
+{
+    static const size_t container_size = SOUND_Q_SIZE_OF_CONTAINER;
+    static const size_t loop_size = SOUND_Q_SIZE_OF_CONTAINER / AVRG;
+    static uint16_t *data_container = NULL;
+    static int8_t loop_idx = 0; // when loop_idx == AVRG the data are queued
+    size_t data_container_idx = loop_idx * loop_size;
+    uint16_t *raw_data = (uint16_t*)mem_block;
+    size_t corection = 1;
+    int one = 0;
+
+    // with a logic analyzer
+    // int two = 0;
+    // int tree = 0;
+    // int four = 0;
+    // for (size_t i = 0; i < 3; ++i)
+    // {
+    //     if (raw_data[i *4 + 0] == 0xFFFF)
+    //         one += 1;
+    //     if (raw_data[i *4 + 1] == 0xFFFF)
+    //         ++two;
+    //     if (raw_data[i *4 + 2] == 0xFFFF)
+    //         ++tree;
+    //     if (raw_data[i *4 + 3] == 0xFFFF)
+    //         ++ four;
+    // }
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        if (raw_data[i *4 + 0] == 0)
+            one += 1;
+    }
+    if (one == 3)
+        corection = 3;
+    
+    if (one == 1 || one == 2)
+        LOG_HEXDUMP_DBG(raw_data, 24, "data");
+
+    if (size != (SAMPLE_SIZE * container_size))
+    {
+        LOG_ERR("mem_block has wrong size");
+	    goto free;
+    }
+    
+    if (loop_idx == 0)
+    {
+        if (!_data_queue->getFrontContainer(data_container))
+        {
+            LOG_ERR("queue is full");
+            goto free;
+        }
+    }
+    
+    for (size_t i = 0; i < container_size; i += AVRG)
+    {
+        data_container[data_container_idx++] = raw_data[i*4 + corection];
+    }
+
+    loop_idx +=1;
+    if (loop_idx == AVRG)
+    {
+        _data_queue->push();
+        loop_idx = 0;
+    }
+
+free:
+	k_mem_slab_free(&mem_slab, mem_block);
+}
 

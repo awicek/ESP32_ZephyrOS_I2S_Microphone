@@ -15,4 +15,5 @@ target_sources(app PRIVATE src/sound_queue.cpp)
 target_sources(app PRIVATE src/network_com.cpp)
 target_sources(app PRIVATE src/user_buttons.cpp)
 target_sources(app PRIVATE src/speach.cpp)
+target_sources(app PRIVATE src/led_controler.cpp)
 

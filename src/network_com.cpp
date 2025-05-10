@@ -1,5 +1,6 @@
 #include "network_com.h"
 #include "speach.h"
+#include "led_controler.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(NetworkCommunication, LOG_LEVEL_DBG);
@@ -128,6 +129,7 @@ void NetworkCom::rxLoop(void *network_com_ptr, void *arg2, void *arg3)
             LOG_HEXDUMP_INF(msg_buf, (uint32_t)rc, "rxLoop: msg");
             msg_buf[rc] = '\0';
             Speach::getInstance().speak((char*)msg_buf);
+            led_set_mode(LED_READY);
         }
         
     }

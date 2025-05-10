@@ -144,6 +144,7 @@ void UserButtons::rPress()
         }
         
         _recording = false;
+        led_set_mode(LED_WAITING_FOR_RESPONSE);
     }
 }
 
@@ -166,8 +167,8 @@ void UserButtons::lPress()
             return;
         }
         _sound_rec->startRecording();
-        
         _recording = true;
+        led_set_mode(LED_RECORDING);
     }
 
 }
