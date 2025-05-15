@@ -10,9 +10,9 @@ LOG_MODULE_REGISTER(speach, LOG_LEVEL_DBG);
 #define UART_DEVICE_NODE_2 DT_NODELABEL(uart2)
 const struct device *const Speach::_uart_dev2 =  DEVICE_DT_GET(UART_DEVICE_NODE_2);
 static char MSG_SET_ENG[] = "[g2]";
-static char MSG_SET_VOLUME[] = "[v1]";
+static char MSG_SET_VOLUME[] = "[v3]";
 static char MSG_SET_SPEED[] = "[s3]";
-static char MSG_HELLO[] = "Hello. What are we cooking today!";
+static char MSG_HELLO[] = "Hello. I am your personal weather girl Gravity. How can I help you today?";
 
 
 Speach& Speach::getInstance()
