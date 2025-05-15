@@ -211,11 +211,11 @@ void I2SWrapper::processI2SMemBlock(void *mem_block, size_t size)
         if (raw_data[i *4 + 0] == 0)
             one += 1;
     }
-    if (one == 3)
+    if (one != 0)
         corection = 3;
     
-    if (one == 1 || one == 2)
-        LOG_HEXDUMP_DBG(raw_data, 24, "data");
+    // if (one == 1 || one == 2)
+    //     LOG_HEXDUMP_DBG(raw_data, 24, "data");
 
     if (size != (SAMPLE_SIZE * container_size))
     {

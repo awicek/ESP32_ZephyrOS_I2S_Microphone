@@ -58,7 +58,7 @@
 	};
 	uart2_default: uart2_default {
 		group1 {
-			pinmux = < UART2_TX_GPIO9 >;
+			pinmux = < UART2_TX_GPIO9; >;
 			output-high;
 		};
 		group2 {

@@ -16,7 +16,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(MAIN, LOG_LEVEL_DBG);
 
-#define SERVER_IP "192.168.4.12"
+#define SERVER_IP "192.168.4.11"
 #define SERVER_PORT 2803           
 
 
